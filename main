@@ -1,0 +1,45 @@
+import cv2
+import numpy as np
+from tabulate import tabulate
+
+def analyze_stellar_spectra(image):
+    # Preprocess the image (if necessary)
+    # Apply image processing techniques to isolate the spectra
+
+    # Extract the spectral data
+    spectra = np.mean(image, axis=0)  # Assuming the spectra are represented in rows
+
+    return spectra
+
+# Load the telescope image
+image_path = 'hubble_ngc6325_potw2320a_0.jpg'
+image = cv2.imread(image_path)
+
+# Check if the image was loaded successfully
+if image is None:
+    print(f"Error: Failed to load image from {image_path}")
+    exit()
+
+# Analyze the number of space objects
+gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+_, binary_image = cv2.threshold(gray_image, 127, 255, cv2.THRESH_BINARY)
+contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+num_objects = len(contours)
+
+# Analyze the stellar spectra for each object
+print(f"Number of space objects: {num_objects}")
+for i, contour in enumerate(contours):
+    # Extract the region of interest for each object
+    x, y, w, h = cv2.boundingRect(contour)
+    object_image = image[y:y+h, x:x+w]
+
+    # Analyze the stellar spectra for the object
+    object_spectra = analyze_stellar_spectra(object_image)
+
+    # Print the results as a table
+    table_data = []
+    for j, spectrum in enumerate(object_spectra):
+        table_data.append([f"Channel {j+1}", spectrum])
+
+    print(f"\nObject {i+1} - Stellar Spectra:")
+    print(tabulate(table_data, headers=["Channel", "Intensity"], tablefmt="grid"))
